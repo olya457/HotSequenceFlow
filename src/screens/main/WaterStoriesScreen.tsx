@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import {
   View, Text, TouchableOpacity,
   StyleSheet, ScrollView, FlatList,
-  Image, Dimensions,
+  Image, Dimensions, Platform,
 } from 'react-native';
 import GradientBackground from '../../components/GradientBackground';
 import SafeScreen from '../../components/SafeScreen';
@@ -10,11 +10,12 @@ import CardBlock from '../../components/CardBlock';
 import AppButton from '../../components/AppButton';
 import { COLORS } from '../../constants/colors';
 import { SPACING } from '../../constants/spacing';
-import { saveStory } from '../../data/storage';
+import { saveStory, removeStory } from '../../data/storage';
 import { WATER_STORIES, WaterStory } from '../../data/waterStories';
 
 const { height: SCREEN_H } = Dimensions.get('window');
-const isSmall = SCREEN_H < 700;
+const isSmall       = SCREEN_H < 700;
+const ANDROID_SHIFT = Platform.OS === 'android' ? 20 : 0;
 
 type ViewMode = 'list' | 'read';
 
@@ -37,13 +38,17 @@ export default function WaterStoriesScreen() {
     openStory(WATER_STORIES[next], next);
   };
 
-  const handleSave = async () => {
+  const handleStar = async () => {
     if (!selected) return;
-    await saveStory(selected);
-    setSavedIds(prev =>
-      prev.includes(selected.id) ? prev : [...prev, selected.id]
-    );
-    setStarred(true);
+    if (starred) {
+      await removeStory(selected.id);
+      setSavedIds(prev => prev.filter(id => id !== selected.id));
+      setStarred(false);
+    } else {
+      await saveStory(selected);
+      setSavedIds(prev => [...prev, selected.id]);
+      setStarred(true);
+    }
   };
 
   if (viewMode === 'read' && selected) {
@@ -52,7 +57,7 @@ export default function WaterStoriesScreen() {
         <GradientBackground preset="main" />
         <SafeScreen withBottomNav style={styles.safe}>
 
-          <View style={styles.topRow}>
+          <View style={[styles.topRow, { marginTop: ANDROID_SHIFT }]}>
             <TouchableOpacity onPress={() => setViewMode('list')} style={styles.exitBtn}>
               <Text style={styles.exitText}>Exit</Text>
             </TouchableOpacity>
@@ -77,7 +82,7 @@ export default function WaterStoriesScreen() {
               style={styles.nextBtn}
             />
             <TouchableOpacity
-              onPress={handleSave}
+              onPress={handleStar}
               style={[styles.iconBtn, starred && styles.iconBtnActive]}
             >
               <Text style={styles.iconBtnIcon}>{starred ? '⭐' : '☆'}</Text>
@@ -94,7 +99,9 @@ export default function WaterStoriesScreen() {
       <GradientBackground preset="main" />
       <SafeScreen withBottomNav style={styles.safe}>
 
-        <Text style={styles.screenTitle}>Water Stories</Text>
+        <Text style={[styles.screenTitle, { marginTop: ANDROID_SHIFT }]}>
+          Water Stories
+        </Text>
 
         <CardBlock style={styles.descCard}>
           <View style={styles.descRow}>

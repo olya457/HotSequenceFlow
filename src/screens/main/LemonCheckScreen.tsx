@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   View, Text, TouchableOpacity,
   StyleSheet, ScrollView, Image,
-  Dimensions,
+  Dimensions, Platform,
 } from 'react-native';
 import GradientBackground from '../../components/GradientBackground';
 import SafeScreen from '../../components/SafeScreen';
@@ -14,7 +14,8 @@ import { saveLemonScore, getLemonScores, LemonScore } from '../../data/storage';
 import { getLevelData, MAX_LEVEL } from '../../data/lemonQuestions';
 
 const { height: SCREEN_H } = Dimensions.get('window');
-const isSmall = SCREEN_H < 700;
+const isSmall       = SCREEN_H < 700;
+const ANDROID_SHIFT = Platform.OS === 'android' ? 20 : 0;
 
 type Phase = 'intro' | 'quiz' | 'result';
 
@@ -70,7 +71,9 @@ export default function LemonCheckScreen() {
       <View style={styles.container}>
         <GradientBackground preset="main" />
         <SafeScreen withBottomNav style={styles.safe}>
-          <Text style={styles.screenTitle}>Lemon Check</Text>
+          <Text style={[styles.screenTitle, { marginTop: ANDROID_SHIFT }]}>
+            Lemon Check
+          </Text>
           <View style={styles.centerBody}>
             <Image
               source={require('../../assets/img_lemon_stand.png')}
@@ -97,7 +100,9 @@ export default function LemonCheckScreen() {
       <View style={styles.container}>
         <GradientBackground preset="main" />
         <SafeScreen withBottomNav style={styles.safe}>
-          <Text style={styles.screenTitle}>Lemon Check</Text>
+          <Text style={[styles.screenTitle, { marginTop: ANDROID_SHIFT }]}>
+            Lemon Check
+          </Text>
           <View style={styles.centerBody}>
             <Image
               source={require('../../assets/img_lemon_stand.png')}
@@ -146,7 +151,7 @@ export default function LemonCheckScreen() {
       <GradientBackground preset="main" />
       <SafeScreen withBottomNav style={styles.safe}>
 
-        <View style={styles.quizHeader}>
+        <View style={[styles.quizHeader, { marginTop: ANDROID_SHIFT }]}>
           <TouchableOpacity onPress={() => setPhase('intro')} style={styles.exitBtn}>
             <Text style={styles.exitText}>Exit</Text>
           </TouchableOpacity>

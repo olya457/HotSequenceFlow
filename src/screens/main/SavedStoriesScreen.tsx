@@ -2,9 +2,10 @@ import React, { useState, useCallback } from 'react';
 import {
   View, Text, TouchableOpacity,
   StyleSheet, FlatList, ScrollView, Image,
-  Dimensions,
+  Dimensions, Platform,
 } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import GradientBackground from '../../components/GradientBackground';
 import SafeScreen from '../../components/SafeScreen';
 import AppButton from '../../components/AppButton';
@@ -14,14 +15,18 @@ import {
   getSavedStories, removeStory,
   clearAllStories, Story,
 } from '../../data/storage';
+import { MainTabParamList } from '../../types/navigation';
 
 const { height: SCREEN_H } = Dimensions.get('window');
-const isSmall = SCREEN_H < 700;
+const isSmall       = SCREEN_H < 700;
+const ANDROID_SHIFT = Platform.OS === 'android' ? 20 : 0;
 
+type NavProp = BottomTabNavigationProp<MainTabParamList, 'SavedStories'>;
 type ViewMode = 'list' | 'read';
 
 export default function SavedStoriesScreen() {
-  const [stories,  setStories]  = useState<Story[]>([]);
+  const navigation             = useNavigation<NavProp>();
+  const [stories,  setStories] = useState<Story[]>([]);
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [selected, setSelected] = useState<Story | null>(null);
 
@@ -36,14 +41,17 @@ export default function SavedStoriesScreen() {
     setStories([]);
   };
 
-  const handleDelete = async (id: string) => {
-    await removeStory(id);
-    setStories(prev => prev.filter(s => s.id !== id));
-  };
-
   const openStory = (story: Story) => {
     setSelected(story);
     setViewMode('read');
+  };
+
+  const handleRemoveStar = async () => {
+    if (!selected) return;
+    await removeStory(selected.id);
+    setStories(prev => prev.filter(s => s.id !== selected.id));
+    setSelected(null);
+    setViewMode('list');
   };
 
   if (viewMode === 'read' && selected) {
@@ -52,8 +60,11 @@ export default function SavedStoriesScreen() {
         <GradientBackground preset="main" />
         <SafeScreen withBottomNav style={styles.safe}>
 
-          <View style={styles.topRow}>
-            <TouchableOpacity onPress={() => setViewMode('list')} style={styles.exitBtn}>
+          <View style={[styles.topRow, { marginTop: ANDROID_SHIFT }]}>
+            <TouchableOpacity
+              onPress={() => setViewMode('list')}
+              style={styles.exitBtn}
+            >
               <Text style={styles.exitText}>Exit</Text>
             </TouchableOpacity>
             <Text style={styles.screenTitle}>Saved Stories</Text>
@@ -71,11 +82,12 @@ export default function SavedStoriesScreen() {
           </ScrollView>
 
           <View style={styles.readActions}>
-            <TouchableOpacity style={styles.iconBtn}>
-              <Text style={styles.iconBtnIcon}>🔒</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.iconBtn}>
-              <Text style={styles.iconBtnIcon}>⭐</Text>
+            <TouchableOpacity
+              onPress={handleRemoveStar}
+              style={styles.starBtn}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            >
+              <Text style={styles.starIcon}>⭐</Text>
             </TouchableOpacity>
           </View>
 
@@ -89,7 +101,9 @@ export default function SavedStoriesScreen() {
       <View style={styles.container}>
         <GradientBackground preset="main" />
         <SafeScreen withBottomNav style={styles.safe}>
-          <Text style={styles.screenTitle}>Saved Stories</Text>
+          <Text style={[styles.screenTitle, { marginTop: ANDROID_SHIFT }]}>
+            Saved Stories
+          </Text>
           <View style={styles.emptyBody}>
             <Image
               source={require('../../assets/img_watermelon_empty.png')}
@@ -105,7 +119,7 @@ export default function SavedStoriesScreen() {
           </View>
           <AppButton
             label="Explore Stories"
-            onPress={() => {}}
+            onPress={() => navigation.navigate('WaterStories')}
             variant="brown"
             style={styles.btn}
           />
@@ -119,7 +133,7 @@ export default function SavedStoriesScreen() {
       <GradientBackground preset="main" />
       <SafeScreen withBottomNav style={styles.safe}>
 
-        <View style={styles.listHeader}>
+        <View style={[styles.listHeader, { marginTop: ANDROID_SHIFT }]}>
           <Text style={styles.screenTitle}>Saved Stories</Text>
           <TouchableOpacity onPress={handleDeleteAll} style={styles.deleteBtn}>
             <Text style={styles.deleteText}>🗑 Delete all</Text>
@@ -151,16 +165,17 @@ export default function SavedStoriesScreen() {
   );
 }
 
+const STAR_SIZE = isSmall ? 52 : 60;
+
 const styles = StyleSheet.create({
   container: { flex: 1 },
   safe:      { flex: 1 },
 
   screenTitle: {
-    color:           COLORS.yellow,
-    fontSize:        isSmall ? 17 : 20,
-    fontWeight:      '800',
-    textAlign:       'center',
-    paddingVertical: isSmall ? SPACING.xs : SPACING.sm,
+    color:      COLORS.yellow,
+    fontSize:   isSmall ? 17 : 20,
+    fontWeight: '800',
+    textAlign:  'center',
   },
 
   topRow: {
@@ -168,6 +183,7 @@ const styles = StyleSheet.create({
     alignItems:        'center',
     justifyContent:    'space-between',
     paddingHorizontal: SPACING.md,
+    paddingVertical:   isSmall ? SPACING.xs : SPACING.sm,
   },
 
   exitBtn:  { width: 44, padding: 4 },
@@ -211,6 +227,7 @@ const styles = StyleSheet.create({
     alignItems:        'center',
     justifyContent:    'space-between',
     paddingHorizontal: SPACING.md,
+    paddingVertical:   isSmall ? SPACING.xs : SPACING.sm,
   },
 
   deleteBtn:  { padding: 6 },
@@ -281,11 +298,24 @@ const styles = StyleSheet.create({
   },
 
   readActions: {
-    flexDirection:     'row',
     paddingHorizontal: SPACING.md,
-    marginBottom:      isSmall ? SPACING.xs : SPACING.sm,
+    paddingVertical:   isSmall ? SPACING.sm : SPACING.md,
+    alignItems:        'flex-start',
   },
 
-  iconBtn:     { padding: isSmall ? 7 : 10 },
-  iconBtnIcon: { fontSize: isSmall ? 20 : 24 },
+  starBtn: {
+    width:           STAR_SIZE,
+    height:          STAR_SIZE,
+    borderRadius:    STAR_SIZE / 2,
+    backgroundColor: COLORS.btnPurple,
+    alignItems:      'center',
+    justifyContent:  'center',
+    overflow:        'visible',
+  },
+
+  starIcon: {
+    fontSize:   isSmall ? 26 : 30,
+    lineHeight: isSmall ? 32 : 36,
+    textAlign:  'center',
+  },
 });

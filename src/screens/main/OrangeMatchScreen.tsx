@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   View, Text, TouchableOpacity,
-  StyleSheet, Image, Dimensions,
+  StyleSheet, Image, Dimensions, Platform,
 } from 'react-native';
 import GradientBackground from '../../components/GradientBackground';
 import SafeScreen from '../../components/SafeScreen';
@@ -11,7 +11,8 @@ import { SPACING } from '../../constants/spacing';
 import { getOrangeLevel, setOrangeLevel } from '../../data/storage';
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
-const isSmall = SCREEN_H < 700;
+const isSmall       = SCREEN_H < 700;
+const ANDROID_SHIFT = Platform.OS === 'android' ? 20 : 0;
 
 const TILE_IMAGES = [
   require('../../assets/img_tile_cherry.png'),
@@ -115,7 +116,9 @@ export default function OrangeMatchScreen() {
       <View style={styles.container}>
         <GradientBackground preset="main" />
         <SafeScreen withBottomNav style={styles.safe}>
-          <Text style={styles.screenTitle}>Orange Match</Text>
+          <Text style={[styles.screenTitle, { marginTop: ANDROID_SHIFT }]}>
+            Orange Match
+          </Text>
           <View style={styles.centerBody}>
             <Image
               source={require('../../assets/img_orange_stand.png')}
@@ -139,7 +142,9 @@ export default function OrangeMatchScreen() {
       <View style={styles.container}>
         <GradientBackground preset="main" />
         <SafeScreen withBottomNav style={styles.safe}>
-          <Text style={styles.screenTitle}>Orange Match</Text>
+          <Text style={[styles.screenTitle, { marginTop: ANDROID_SHIFT }]}>
+            Orange Match
+          </Text>
           <View style={styles.centerBody}>
             <Image
               source={require('../../assets/img_orange_stand.png')}
@@ -164,7 +169,7 @@ export default function OrangeMatchScreen() {
       <GradientBackground preset="main" />
       <SafeScreen withBottomNav style={styles.safe}>
 
-        <View style={styles.gameHeader}>
+        <View style={[styles.gameHeader, { marginTop: ANDROID_SHIFT }]}>
           <TouchableOpacity onPress={() => setPhase('intro')} style={styles.exitBtn}>
             <Text style={styles.exitText}>Exit</Text>
           </TouchableOpacity>
