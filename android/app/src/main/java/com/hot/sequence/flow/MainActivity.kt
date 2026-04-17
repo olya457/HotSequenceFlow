@@ -1,4 +1,4 @@
-package com.hotsequenceflow
+package com.hot.sequence.flow
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate

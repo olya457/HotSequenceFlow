@@ -1,4 +1,4 @@
-package com.hotsequenceflow
+package com.hot.sequence.flow
 
 import android.app.Application
 import com.facebook.react.PackageList
